@@ -36,7 +36,6 @@ setInterval(async () => {
         let id = ids[i]
         data[id] = await xRequest(id)
     }
-    makeRequest()
 }, 1000 * 60 * 30)
 
 app.listen(PORT)
