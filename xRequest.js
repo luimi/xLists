@@ -1,8 +1,7 @@
 const axios = require('axios');
 require('dotenv').config()
 
-const { AUTHORIZATION, COOKIE, XCSRFTOKEN, GRAPHQL } = process.env;
-
+const { AUTHORIZATION, COOKIE, XCSRFTOKEN, GRAPHQL, MAXTWEETS } = process.env;
 const variables = { "count": 20 }
 const features = {
     "rweb_tipjar_consumption_enabled": true,
@@ -47,20 +46,24 @@ module.exports = (id) => {
             .then(({data}) => {
                 if(data?.data?.errors) rej(response.data.data.errors)
                 else {
-                    let result = data.data.list.tweets_timeline.timeline.instructions[0].entries.map((entry) => {
-                        if(entry.content.entryType === "TimelineTimelineModule" || entry.content.entryType === "TimelineTimelineCursor") return 
+                    let tweets = []
+                    let entries = data.data.list.tweets_timeline.timeline.instructions[0].entries
+                    for (let i = 0; i < entries.length && tweets.length <= MAXTWEETS; i++) {
+                        const entry = entries[i];
+                        if(entry.content.entryType === "TimelineTimelineModule" || entry.content.entryType === "TimelineTimelineCursor") continue 
                         let result = entry.content.itemContent.tweet_results.result
                         let tweet = result.legacy? result: result.tweet;
                         let media = tweet.legacy.entities.media
-                        return {
+                        tweets.push({
                             text: tweet.legacy.full_text,
                             media: media && media.length>0? media.map((_media) => _media.media_url_https):[],
                             date: tweet.legacy.created_at,
                             author: tweet.core.user_results.result.legacy.screen_name,
-                            author_name: tweet.core.user_results.result.legacy.name
-                        }
-                    })
-                    res(result.filter((e) => e !== undefined))
+                            author_name: tweet.core.user_results.result.legacy.name,
+                            avatar: tweet.core.user_results.result.legacy.profile_image_url_https
+                        }) 
+                    }
+                    res(tweets.filter((e) => e !== undefined))
                 }
             })
             .catch((error) => {
