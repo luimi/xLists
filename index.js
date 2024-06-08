@@ -7,16 +7,22 @@ const { PORT } = process.env
 const app = express()
 const data = {}
 
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
 app.get('/get', async (req, res) => {
     const { id } = req.query
     if (!id) {
         res.send("Id is missing");
         return
     }
-    if(!data[id]) {
+    if (!data[id]) {
         try {
             data[id] = await xRequest(id)
-        }catch(e){
+        } catch (e) {
             console.log(e)
             res.send([])
             return
