@@ -12,7 +12,9 @@ app.use((req, res, next) => {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
-
+app.get("/", async (req, res) => {
+    res.send("xLists API running")
+})
 app.get('/get', async (req, res) => {
     const { id } = req.query
     if (!id) {
